@@ -1,0 +1,48 @@
+// Run at command line using 'gradle -q'
+
+defaultTasks 'build'
+
+// Project-level extra properties
+project.ext {
+  config = new Config(
+    libraryName: "Plotly.js",
+    jsonSchema: file( "../../dist/plot-schema.json")
+  )
+}
+
+task initialize() {
+  Config config = project.config
+  println " "
+  println " "
+  println "*************************************************************************************************"
+  println " "
+  println "Make sure to add any new plot-schema.json files to the /json folder."
+  println "Also copy the latest plotly.js file to the /js folder."
+  println " "
+  
+  println "[To debug, use command: gradle build --no-daemon -Dorg.gradle.debug=true --stacktrace"
+  println "Then run as Remote Debug]"
+  println " "
+  
+  println "Creating ${ config.libraryName } Definition File..."
+  println "Using JSON schema from: ${ config.jsonSchema}"
+  println " "
+  println "*************************************************************************************************"
+  println " "
+  println " "
+}
+
+task createTsd( dependsOn: initialize ) << {
+  println "Initializing generator..."
+  TsdGenerator generator = new TsdGenerator( config: config )
+  generator.generate()
+}
+
+// To debug?
+// Command line: gradle build --no-daemon -Dorg.gradle.debug=true --stacktrace
+// Then use run/debug Remote Debug
+task build( dependsOn: createTsd ) << {
+  println " "
+  println "Build complete"
+  println " "
+}

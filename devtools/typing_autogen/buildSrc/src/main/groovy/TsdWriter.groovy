@@ -1,3 +1,6 @@
+import groovy.transform.Synchronized
+import org.gradle.internal.impldep.org.apache.commons.lang.ObjectUtils
+
 class TsdWriter {
 
     Config config
@@ -5,7 +8,7 @@ class TsdWriter {
     TsdTemplates tsdTemplates
     SchemaParser schemaParser
     TypeUtils typeUtils
-    Map mergedAxis = [:]
+    Map mergedAxis
     String currentStep
     Map events
 
@@ -27,17 +30,16 @@ class TsdWriter {
     }
 
     private init() {
-        config.outputPath.deleteDir()
-        config.outputPath.mkdirs()
         typeUtils = new TypeUtils()
         tsdTemplates = new TsdTemplates()
         definitionFile = new File( "${ config.outputPath }/${ config.fileName}" )
-        definitionFile.createNewFile()
+        definitionFile.delete()
+        //definitionFile.createNewFile()
     }
     
     private writeTsdHeader() {
         currentStep = "header"
-        writeToDefinition( "// Generated from Plotly.js version ${config.libraryVersion}", 0 )
+        writeToDefinition( "// Generated from Plotly.js", 0 )
         writeToDefinition( "", 0 )
         writeToDefinition( tsdTemplates.tsdHeader(), 0 )
         writeToDefinition( "", 0 )
@@ -154,7 +156,9 @@ class TsdWriter {
         def terminator = ( depth > 2 ? "," : ";" )
 
         content = appendLine( "/**", depth, content )
-        if( attConfig.description ) content = appendLine( " * ${ attConfig.description }", depth, content )
+        if( attConfig.description ) {
+            content = appendLine( " * ${ attConfig.description }", depth, content )
+        }
         if( attConfig.dflt ) content = appendLine(  " * @default: ${ typeUtils.quoteIfString( attConfig.dflt ) }", depth, content )
 
         def tsType = typeUtils.getTSType( attConfig )
@@ -167,20 +171,28 @@ class TsdWriter {
         return content
     }
 
+    @Synchronized
     private buildNestedObjectContent( String attName, Map attributes, depth ) {
         def content = ""
         def terminator = ( depth > 2 ? "," : ";" )
 
-        def isAxis = false
+        boolean isAxis = false
         // Special handling for axis attributes, to reference separate PlotlyAxis type.
+
         if( [ "xaxis", "yaxis", "zaxis" ].contains( attName ) ) {
             isAxis = true
-            mergedAxis << attributes
+
+            if (mergedAxis == null) {
+                mergedAxis = attributes
+            } else {
+                mergedAxis = mergedAxis + attributes
+            }
+
         }
 
         if( attributes.description ) {
             content = appendLine( "/**", depth, content )
-            content = appendLine( " * ${ attributes.description }", depth, content )
+            content = appendLine( " * ${ attributes.description.replace('*/*', '/') }", depth, content )
             content = appendLine( " */", depth, content )
         }
         if( isAxis ) {

@@ -132,7 +132,8 @@ class TypeUtils {
     def quoteIfString( val ) {
         def result = val
         if( isString( val ) ) {
-            result = '"' + val + '"'
+            val = val.replace('\\','\\\\')
+            result = '\'' + val + '\''
         }
         return result
     }

@@ -5492,7 +5492,7 @@ declare module plotly.traces {
       /**
        * Area traces are deprecated! Please switch to the *barpolar* trace type. Sets the marker size (in px).
        * @default: '6'
-       * Plotly @type: number
+       * Plotlyc @type: number
        */
       size?: number|number[],
       /**

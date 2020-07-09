@@ -21,20 +21,68 @@ declare module plotly {
 
     emit?(event: any, data: any): void;
 
-    /**
-     * To get full type checking on the event, you need to specify a type like this. It's overly verbose, but it's the only way to ensure
-     * that all the generic types within the event can be determined:
-     *
-     * type eventType = plotly.event.DataEventData<plotly.event.CartesianEventPoint<plotly.traces.ScatterGL>, plotly.traces.ScatterGL>;
-     * plotElement.on( PlotlyDataEvents.plotly_selected, ( eventData: eventType ) => {
-     *   // Your code
-     * });
-     *
-     * @param event {string} Event name
-     * @param fn {( eventData: any ) => void} For event data type checking, specify data type and generics like:
-     * plotly.event.DataEventData&lt;plotly.event.CartesianEventPoint&lt;plotly.traces.ScatterGL&gt;, plotly.traces.ScatterGL&gt;
-     */
-    on?(event: string, fn: (eventData: any) => void): void;
+    on(
+      event: "plotly_click" | "plotly_hover" | "plotly_unhover",
+      callback: (event: plotly.event.PlotMouseEvent) => void
+    ): void;
+    on(
+      event: "plotly_selecting" | "plotly_selected",
+      callback: (event: plotly.event.PlotSelectionEvent) => void
+    ): void;
+    on(
+      event: "plotly_restyle",
+      callback: (data: plotly.event.PlotRestyleEvent) => void
+    ): void;
+    on(
+      event: "plotly_relayout" | "plotly_relayouting",
+      callback: (event: plotly.event.PlotRelayoutEvent) => void
+    ): void;
+    on(
+      event: "plotly_clickannotation",
+      callback: (event: plotly.event.ClickAnnotationEvent) => void
+    ): void;
+    on(
+      event: "plotly_animatingframe",
+      callback: (event: plotly.event.FrameAnimationEvent) => void
+    ): void;
+    on(
+      event: "plotly_legendclick" | "plotly_legenddoubleclick",
+      callback: (event: plotly.event.LegendClickEvent) => boolean
+    ): void;
+    on(
+      event: "plotly_sliderchange",
+      callback: (event: plotly.event.SliderChangeEvent) => void
+    ): void;
+    on(
+      event: "plotly_sliderend",
+      callback: (event: plotly.event.SliderEndEvent) => void
+    ): void;
+    on(
+      event: "plotly_sliderstart",
+      callback: (event: plotly.event.SliderStartEvent) => void
+    ): void;
+    on(event: "plotly_event", callback: (data: any) => void): void;
+    on(
+      event: "plotly_beforeplot",
+      callback: (event: plotly.event.BeforePlotEvent) => boolean
+    ): void;
+    on(
+      event:
+        | "plotly_afterexport"
+        | "plotly_afterplot"
+        | "plotly_animated"
+        | "plotly_animationinterrupted"
+        | "plotly_autosize"
+        | "plotly_beforeexport"
+        | "plotly_deselect"
+        | "plotly_doubleclick"
+        | "plotly_framework"
+        | "plotly_redraw"
+        | "plotly_transitioning"
+        | "plotly_transitioninterrupted",
+      callback: () => void
+    ): void;
+    removeAllListeners: (handler: string) => void;
   }
 }
 
@@ -489,4 +537,184 @@ declare module plotly.Plotly {
       imageDataOnly?: boolean;
     }
   ): void;
+}
+
+declare module plotly.event {
+  export interface Point {
+    x: number;
+    y: number;
+    z: number;
+  }
+
+  export interface PlotScatterDataPoint {
+    curveNumber: number;
+    data: Basic;
+    pointIndex: number;
+    pointNumber: number;
+    x: number;
+    xaxis: plotly.layout.PlotlyAxis;
+    y: number;
+    yaxis: plotly.layout.PlotlyAxis;
+  }
+
+  export interface PlotDatum {
+    curveNumber: number;
+    data: plotly.traces.BaseTrace;
+    pointIndex: number;
+    pointNumber: number;
+    x: any[];
+    xaxis: plotly.layout.PlotlyAxis;
+    y: any[];
+    yaxis: plotly.layout.PlotlyAxis;
+  }
+
+  export interface PlotMouseEvent {
+    points: PlotDatum[];
+    event: MouseEvent;
+  }
+
+  export interface PlotCoordinate {
+    x: number;
+    y: number;
+    pointNumber: number;
+  }
+
+  export interface SelectionRange {
+    x: number[];
+    y: number[];
+  }
+
+  export type PlotSelectedData = Partial<PlotDatum>;
+
+  export interface PlotSelectionEvent {
+    points: PlotDatum[];
+    range?: SelectionRange;
+    lassoPoints?: SelectionRange;
+  }
+
+  export type PlotRestyleEvent = [
+    any, // update object -- attribute updated: new value
+    number[] // array of traces updated
+  ];
+
+  export interface PlotScene {
+    center: Point;
+    eye: Point;
+    up: Point;
+  }
+
+  export interface PlotRelayoutEvent extends Partial<Layout> {
+    "xaxis.range[0]"?: number;
+    "xaxis.range[1]"?: number;
+    "yaxis.range[0]"?: number;
+    "yaxis.range[1]"?: number;
+    "xaxis.autorange"?: boolean;
+    "yaxis.autorange"?: boolean;
+  }
+
+  export interface ClickAnnotationEvent {
+    index: number;
+    annotation: Annotations;
+    fullAnnotation: Annotations;
+    event: MouseEvent;
+  }
+
+  export interface FrameAnimationEvent {
+    name: string;
+    frame: Frame;
+    animation: {
+      frame: {
+        duration: number;
+        redraw: boolean;
+      };
+      transition: Transition;
+    };
+  }
+
+  export interface LegendClickEvent {
+    event: MouseEvent;
+    node: PlotlyHTMLElement;
+    curveNumber: number;
+    expandedIndex: number;
+    data: Data[];
+    layout: Partial<Layout>;
+    frames: Frame[];
+    config: Partial<Config>;
+    fullData: Data[];
+    fullLayout: Partial<Layout>;
+  }
+
+  export interface MapboxCenter {
+    lon: number;
+    lat: number;
+  }
+
+  export interface MapboxSymbol {
+    icon: string;
+    iconsize: number;
+    text: string;
+    placement: "point" | "line" | "line-center";
+    textfont: Partial<Font>;
+    textposition:
+      | "top left"
+      | "top center"
+      | "top right"
+      | "middle center"
+      | "bottom left"
+      | "bottom center"
+      | "bottom right";
+  }
+  export interface MapboxLayers {
+    visible: true;
+    sourcetype: "geojson" | "vecotr" | "raster" | "image";
+    source: number | string;
+    sourcelayer: string;
+    sourceattribution: string;
+    type: "circle" | "line" | "fill" | "symbol" | "raster";
+    coordinates: number | string;
+    below: string;
+    color: Color;
+    opacity: number;
+    minzoom: number;
+    maxzoom: number;
+    circle: { radius: number };
+    line: Partial<ShapeLine>;
+    fill: { outlinecolor: Color };
+    symbol: Partial<MapboxSymbol>;
+    name: string;
+    templateitemname: string;
+  }
+  export interface Mapbox {
+    domain: Partial<Domain>;
+    accesstoken: string;
+    style: number | string;
+    center: Partial<MapboxCenter>;
+    zoom: number;
+    bearing: number;
+    pitch: number;
+    layers: Array<Partial<MapboxLayers>>;
+    uirevision: number | string;
+  }
+
+  export interface SliderChangeEvent {
+    slider: Slider;
+    step: SliderStep;
+    interaction: boolean;
+    previousActive: number;
+  }
+
+  export interface SliderStartEvent {
+    slider: Slider;
+  }
+
+  export interface SliderEndEvent {
+    slider: Slider;
+    step: SliderStep;
+  }
+
+  export interface BeforePlotEvent {
+    data: Data[];
+    layout: Partial<Layout>;
+    config: Partial<Config>;
+  }
 }

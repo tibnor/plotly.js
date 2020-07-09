@@ -4,12 +4,12 @@ class Config
     def libraryName
 
     // Path to save definition into
-    def outputPath = new File("../../dist" )
+    def outputPath = new String()
 
     def fileName = "index.d.ts"
 
     // Path to JSON schema
     def jsonSchema
 
-    def jsSourceFile = new File("../../dist/plotly.js" )
+    def jsSourceFile = new String("../../dist/plotly.js" )
 }

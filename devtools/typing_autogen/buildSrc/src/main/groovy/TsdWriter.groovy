@@ -1,10 +1,9 @@
 import groovy.transform.Synchronized
-import org.gradle.internal.impldep.org.apache.commons.lang.ObjectUtils
 
 class TsdWriter {
 
     Config config
-    File definitionFile
+    String definitionFile
     TsdTemplates tsdTemplates
     SchemaParser schemaParser
     TypeUtils typeUtils
@@ -32,7 +31,7 @@ class TsdWriter {
     private init() {
         typeUtils = new TypeUtils()
         tsdTemplates = new TsdTemplates()
-        definitionFile = new File( "${ config.outputPath }/${ config.fileName}" )
+        definitionFile = new String()
         definitionFile.delete()
         //definitionFile.createNewFile()
     }
